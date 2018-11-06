@@ -1,56 +1,86 @@
 import java.io.BufferedReader;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class CompScanner {
     private File fileName;
     private ArrayList<String> fileLines = new ArrayList<>();
     private ArrayList<String> scannedLines = new ArrayList<>();
+    private HashMap<String, String> tokenMap = new HashMap();
 
-    public CompScanner(String name){
+    public CompScanner(String name) {
         fileName = new File(name);
+        // Build HashMap of values
+        tokenMap.put("(", "LP");
+        tokenMap.put(")", "RP");
+        tokenMap.put(":=", "ASGN");
+        tokenMap.put(";", "SC");
+        tokenMap.put("if", "IF");
+        tokenMap.put("then", "THEN");
+        tokenMap.put("else", "ELSE");
+        tokenMap.put("begin", "BEGIN");
+        tokenMap.put("end", "END");
+        tokenMap.put("while", "WHILE");
+        tokenMap.put("do", "DO");
+        tokenMap.put("program", "PROGRAM");
+        tokenMap.put("var", "VAR");
+        tokenMap.put("as", "AS");
+        tokenMap.put("int", "INT");
+        tokenMap.put("bool", "BOOL");
+        tokenMap.put("writeint", "WRITEINT");
+        tokenMap.put("readint", "READINT");
+        tokenMap.put("readInt", "READINT");
+        tokenMap.put("writeInt", "READINT");
+        tokenMap.put("+", "ADDITIVE(+)");
+        tokenMap.put("-", "ADDITIVE(-)");
+        tokenMap.put("*", "MULTIPLICATIVE(*)");
+        tokenMap.put("div", "MULTIPLICATIVE(div)");
+        tokenMap.put("mod", "MULTIPLICATIVE(mod)");
+        tokenMap.put("=", "COMPARE(=)");
+        tokenMap.put("!=", "COMPARE(!=)");
+        tokenMap.put("<", "COMPARE(<)");
+        tokenMap.put(">", "COMPARE(>)");
+        tokenMap.put("<=", "COMPARE(<=)");
+        tokenMap.put("false", "FALSE");
+        tokenMap.put("true", "TRUE");
     }
 
-    public void readFile(){
+    public void readFile() {
         try {
             BufferedReader br = new BufferedReader(new FileReader(fileName));
             Scanner fileScan = new Scanner(br);
-            while (fileScan.hasNextLine()){
+            while (fileScan.hasNextLine()) {
                 fileLines.add(fileScan.nextLine());
             }
-        }catch(IOException e){System.out.println("IOException");}
+        } catch (IOException e) {
+            System.out.println("IOException");
+        }
     }
 
-    public ArrayList<String> getFileLines(){
+    public ArrayList<String> getFileLines() {
         return fileLines;
     }
 
-    private boolean scan(){
-        for (String s:fileLines){
-            if (s.equals("program")){
-                scannedLines.add("PROGRAM");
-            }
-            if (s.contains("var")){
-                String[] a = s.split(" ");
-                scannedLines.add("VAR");
-                scannedLines.add("IDENT(" + a[1] + ")");
-                scannedLines.add("AS");
-                scannedLines.add(a[3].toUpperCase());
-            }
-            if (s.equals("begin")){
-                scannedLines.add("BEGIN");
-            }
-            if (s.contains(":=")){
-                String[] a = s.split(" ");
-                scannedLines.add("IDENT(" + a[0] + ")");
-                scannedLines.add("ASGN");
-                if(a[2].equals("readint")){
-                    scannedLines.add(("READINT"));
+    public ArrayList<String> scan() throws NullPointerException {
+        for (String s : fileLines) {
+            String[] a = s.split(" ");
+            for (String b : a) {
+                //b = b.replaceAll("^\\s+", "");
+                b = b.trim();
+                if(b.equals("")){}
+                else if (b.matches("-?\\d+(\\.\\d+)?")) {
+                    scannedLines.add("num(" + b + ")");
                 }
-
+                else if (tokenMap.get(b) != null){
+                    scannedLines.add(tokenMap.get(b));
+                }
+                else {
+                    scannedLines.add("ident(" + b + ")");
+                }
             }
         }
-        return true;
+        return scannedLines;
     }
 }
