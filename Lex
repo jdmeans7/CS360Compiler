@@ -1,0 +1,31 @@
+Numbers, Literals, and Identifiers:
+ num = [1-9][0-9]*|0
+The regular expression allows all natural numbers, but since we are using
+32-bit integers. Only 0 through 2147483647 are valid integer constants.
+Integer constants outside of that range should be flagged as illegal.
+ boollit = false|true
+ ident = [a-z_A-Z][a-zA-Z0-9]*
+Symbols and Operators:
+ LP = "("
+ RP = ")"
+ ASGN = ":="
+ SC = ";"
+ MULTIPLICATIVE = "*" | "div" | "mod"
+ ADDITIVE = "+" | "-"
+ COMPARE = "=" | "!=" | "<" | ">" | "<=" | ">="
+Keywords:
+ IF = "if"
+ THEN = "then"
+ ELSE = "else"
+ BEGIN = "begin"
+ END = "end"
+ WHILE = "while"
+ DO = "do"
+ PROGRAM = "program"
+ VAR = "var"
+ AS = "as"
+ INT = "int"
+ BOOL = "bool"
+Built-in Procedures:
+ WRITEINT = "writeInt"
+ READINT = "readInt"
