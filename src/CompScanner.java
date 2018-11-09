@@ -12,6 +12,7 @@ public class CompScanner {
 
     public CompScanner(String name) {
         fileName = new File(name);
+        readFile();
         // Build HashMap of values
         tokenMap.put("(", "LP");
         tokenMap.put(")", "RP");
@@ -47,7 +48,7 @@ public class CompScanner {
         tokenMap.put("true", "TRUE");
     }
 
-    public void readFile() {
+    private void readFile() {
         try {
             BufferedReader br = new BufferedReader(new FileReader(fileName));
             Scanner fileScan = new Scanner(br);
@@ -55,6 +56,21 @@ public class CompScanner {
                 fileLines.add(fileScan.nextLine());
             }
         } catch (IOException e) {
+            System.out.println("IOException");
+        }
+    }
+
+    public void writeFile(String outFileName, ArrayList<String> out){
+        try{
+            PrintWriter pw = new PrintWriter(new File(outFileName));
+            StringBuilder sb = new StringBuilder();
+            for (String s:out){
+                sb.append(s);
+                sb.append('\n');
+            }
+            pw.write(sb.toString());
+            pw.close();
+        } catch(IOException e) {
             System.out.println("IOException");
         }
     }
@@ -67,7 +83,6 @@ public class CompScanner {
         for (String s : fileLines) {
             String[] a = s.split(" ");
             for (String b : a) {
-                //b = b.replaceAll("^\\s+", "");
                 b = b.trim();
                 if(b.equals("")){}
                 else if (b.matches("-?\\d+(\\.\\d+)?")) {
