@@ -1,4 +1,5 @@
-
+//TODO: Add parent indicator that can be used before every call to another function to keep track of which node will
+// be the parent node.
 import java.util.ArrayList;
 
 public class CompParser {
@@ -116,6 +117,13 @@ public class CompParser {
 
     public void ifStatement(){
         //IF <expression> THEN <statementSequence> <elseClause> END
+        Node n = new Node(false, tokens.get(count));
+        Node m = new Node(false, "THEN");
+        graph.get(graph.size() - 1).addChild(n);
+        graph.get(graph.size() - 1).addChild(m);
+        graph.add(n);
+        count++; //move to expression token
+        expression();
     }
 
     public void elseCause(){
@@ -133,7 +141,11 @@ public class CompParser {
     public void expression(){
         //<simpleExpression> | <simpleExpression> COMPARE <expression>
         if (tokens.get(count).contains("COMPARE")){
-
+            Node n = new Node(false, tokens.get(count + 1));
+            graph.get(graph.size() - 2).addChild(n);
+            graph.add(n);
+            simpleExpression();
+            expression();
         }
         else{
             simpleExpression();
@@ -143,7 +155,11 @@ public class CompParser {
     public void simpleExpression(){
         //<term> ADDITIVE <simpleExpression> | <term>
         if (tokens.get(count).contains("ADDITIVE")){
-
+            Node n = new Node(false, tokens.get(count + 1));
+            graph.get(graph.size() - 2).addChild(n);
+            graph.add(n);
+            term();
+            simpleExpression();
         }
         else{
             term();
@@ -153,7 +169,11 @@ public class CompParser {
     public void term(){
         //<factor> MULTIPLICATIVE <term> | <factor>
         if (tokens.get(count).contains("MULTIPLICATIVE")){
-
+            Node n = new Node(false, tokens.get(count + 1));
+            graph.get(graph.size() - 2).addChild(n);
+            graph.add(n);
+            factor();
+            term();
         }
         else{
             factor();
@@ -167,7 +187,7 @@ public class CompParser {
             graph.get(graph.size() - 2).addChild(n);
             graph.add(n);
         }
-        else {
+        else { // LP <simpleExpression> RP
             Node n = new Node(false, tokens.get(count));
             graph.get(graph.size() - 1).addChild(n);
             graph.add(n);
