@@ -15,6 +15,12 @@ public class Node {
         children.add(n);
     }
 
+    public void removeChild(Node n) {
+        if (children.contains(n)){
+            children.remove(n);
+        }
+    }
+
     public ArrayList<Node> getChildren(){
         return children;
     }
@@ -25,5 +31,13 @@ public class Node {
 
     public void setLabel(String s){
         label = s;
+    }
+
+    public boolean getRoot(){
+        return root;
+    }
+
+    public void setRoot(boolean b){
+        this.root = b;
     }
 }

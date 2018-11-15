@@ -10,6 +10,11 @@ public class CompScanner {
     private ArrayList<String> scannedLines = new ArrayList<>();
     private HashMap<String, String> tokenMap = new HashMap();
 
+
+    /**
+     * Constructor that calls readFile, and builds a HashMap to read all of the tokens.
+     * @param name Filename
+     */
     public CompScanner(String name) {
         fileName = new File(name);
         readFile();
@@ -44,10 +49,15 @@ public class CompScanner {
         tokenMap.put("<", "COMPARE(<)");
         tokenMap.put(">", "COMPARE(>)");
         tokenMap.put("<=", "COMPARE(<=)");
+        tokenMap.put(">=", "COMPARE(>=)");
         tokenMap.put("false", "FALSE");
         tokenMap.put("true", "TRUE");
     }
 
+
+    /**
+     * Method to read the input file. Reads line by line and adds lines to an ArrayList.
+     */
     private void readFile() {
         try {
             BufferedReader br = new BufferedReader(new FileReader(fileName));
@@ -60,6 +70,12 @@ public class CompScanner {
         }
     }
 
+
+    /**
+     * Method to write the tokens to an output file
+     * @param outFileName Output File Name
+     * @param out ArrayList to write
+     */
     public void writeFile(String outFileName, ArrayList<String> out){
         try{
             PrintWriter pw = new PrintWriter(new File(outFileName));
@@ -75,10 +91,21 @@ public class CompScanner {
         }
     }
 
+
+    /**
+     * Method to retrieve the read lines.
+     * @return ArrayList of lines
+     */
     public ArrayList<String> getFileLines() {
         return fileLines;
     }
 
+
+    /**
+     * Method to scan the read file and seperate the lines into tokens for the parser.
+     * @return ArrayList of tokens
+     * @throws NullPointerException
+     */
     public ArrayList<String> scan() throws NullPointerException {
         for (String s : fileLines) {
             String[] a = s.split(" ");
