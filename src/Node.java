@@ -3,11 +3,11 @@ import java.util.ArrayList;
 public class Node {
     private String label; //The String representation of what this Node represents
     private ArrayList<Node> children; //All children of this node
-    private Boolean root;
+    private Boolean error;
 
     public Node(Boolean root, String label){
         children = new ArrayList<>();
-        this.root = root;
+        this.error = root;
         this.label = label;
     }
 
@@ -33,11 +33,11 @@ public class Node {
         label = s;
     }
 
-    public boolean getRoot(){
-        return root;
+    public boolean getError(){
+        return error;
     }
 
-    public void setRoot(boolean b){
-        this.root = b;
+    public void setError(boolean b){
+        this.error = b;
     }
 }

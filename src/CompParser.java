@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static java.awt.Color.white;
@@ -12,7 +13,7 @@ public class CompParser {
     private ArrayList<Node> graph;
     private ArrayList<String> tokens;
     private int count;
-    //private int STMTIndex;
+    private HashMap<String, String> valueTypes = new HashMap<>();
 
 
     /**
@@ -31,7 +32,7 @@ public class CompParser {
      */
     public void tokenStream(){
         if (tokens.get(0).equals("PROGRAM")){
-            graph.add(new Node(true, "PROGRAM"));
+            graph.add(new Node(false, "PROGRAM"));
             count++;
             program();
         }
@@ -71,12 +72,15 @@ public class CompParser {
         //System.out.println(tokens.get(count));
         if (tokens.get(count).equals("VAR")){
             StringBuilder sb = new StringBuilder();
-            sb.append("DECL:"); //Declaration statement
-            sb.append(tokens.get(count+1)); //Adds the variable that is being declared
+            //sb.append("DECL:"); //Declaration statement
+            String value = isolateVariable(tokens.get(count+1));
+            sb.append(value); //Adds the variable that is being declared
             count = count + 3; //Sets the token count to where the type will be declared. Skips from VAR to type.
             sb.append(":");
-            sb.append(type()); //Calls type() to determine type
-            Node n = new Node(false, sb.toString());
+            String type = type();
+            sb.append(type); //Calls type() to determine type
+            valueTypes.put(value,sb.toString());
+            Node n = new Node(false, "DECL:" + sb.toString());
             graph.get(parentIndex).addChild(n); //Adds node to the list of children of the DECL LIST
             graph.add(n); //Adds node to graph
             count = count + 2; //Sets token to skip type and SC, will be on next VAR or BEGIN.
@@ -149,7 +153,7 @@ public class CompParser {
         graph.add(asgn);
         int ASGNIndex = graph.size()-1;
         if (tokens.get(count+2).equals("READINT")){ //If the variable is assigned to readint
-            Node m = new Node(false, tokens.get(count));
+            Node m = new Node(false, valueTypes.get(isolateVariable(tokens.get(count))));
             Node n = new Node(false, "READINT:INT");
             graph.get(ASGNIndex).addChild(m);
             graph.get(ASGNIndex).addChild(n);
@@ -158,7 +162,13 @@ public class CompParser {
             count = count + 4;
         }
         else {
-            Node m = new Node(false, tokens.get(count));
+            Node m;
+            if(valueTypes.get(isolateVariable(tokens.get(count))) != null){
+                m = new Node(false, valueTypes.get(isolateVariable(tokens.get(count))));
+            } else{
+                m = new Node(false, isolateVariable(tokens.get(count)));
+            }
+            //Node m = new Node(false, valueTypes.get(isolateVariable(tokens.get(count))));
             count = count + 2;
             graph.get(ASGNIndex).addChild(m);
             graph.add(m);
@@ -195,7 +205,7 @@ public class CompParser {
      */
     public void elseCause(int parentIndex){
         if (tokens.get(count).equals("ELSE")) {
-            Node n = new Node(false, tokens.get(count));
+            Node n = new Node(false, tokens.get(count)); //Add ELSE node
             graph.get(parentIndex).addChild(n);
             graph.add(n);
             count++; //Move past ELSE
@@ -250,7 +260,7 @@ public class CompParser {
             if(graph.get(parentIndex).getChildren().contains(returned)) {
                 graph.get(parentIndex).removeChild(returned);
             }
-            Node n = new Node(false, tokens.get(count));
+            Node n = new Node(false, tokens.get(count)); //Add COMPARE node
             count++;
             graph.add(n);
             int compIndex = graph.size()-1;
@@ -349,14 +359,28 @@ public class CompParser {
      */
     public Node factor(int parentIndex){
         if (tokens.get(count).contains("ident") || tokens.get(count).contains("num") || tokens.get(count).contains("boolit")){
-            Node n = new Node(false, tokens.get(count));
+            Node n;
+            if(valueTypes.get(isolateVariable(tokens.get(count))) != null){
+                n = new Node(false, valueTypes.get(isolateVariable(tokens.get(count))));
+            } else{
+                if (tokens.get(count).contains("num")){
+                    //n = new Node(false, isolateVariable(tokens.get(count)) + ":INT");
+                    valueTypes.put(isolateVariable(tokens.get(count)), isolateVariable(tokens.get(count)) + ":INT");
+                }
+                else if(tokens.get(count).contains("boolit")){
+                    //n = new Node(false, isolateVariable(tokens.get(count)) + "BOOL");
+                    valueTypes.put(isolateVariable(tokens.get(count)), isolateVariable(tokens.get(count)) + ":BOOL");
+                }
+                n = new Node(false, valueTypes.get(isolateVariable(tokens.get(count))));
+            }
+            //Node n = new Node(false, valueTypes.get(isolateVariable(tokens.get(count))));
             //graph.get(parentIndex).addChild(n);
             graph.add(n);
             count++;
             return n;
         }
         else { // LP <simpleExpression> RP
-            Node n = new Node(false, tokens.get(count));
+            Node n = new Node(false, isolateVariable(tokens.get(count)));
             graph.get(graph.size() - 1).addChild(n);
             graph.add(n);
             count++;
@@ -381,18 +405,47 @@ public class CompParser {
 
 
     /**
+     * Method to isolate a variable from ident(), num(), or boolit().
+     * @param s The string containing ident().
+     * @return The string without ident(), but with the variable.
+     */
+    public static String isolateVariable(String s){
+        char[] c = s.toCharArray();
+        int start = 0;
+        int end = 0;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0;i<c.length;i++){
+            if (c[i] == '('){
+                start = i;
+            }
+            if (c[i] == ')'){
+                end = i;
+            }
+        }
+        for(int j=start+1;j<end;j++){
+            sb.append(c[j]);
+        }
+        return sb.toString();
+    }
+
+
+    /**
      * Translate the graph that was created into a dot file that can be read by Graphviz
      * @param outFileName The name of the file that will be written to.
      */
     public void createDot(String outFileName){
         try{
             PrintWriter pw = new PrintWriter(new File(outFileName));
+            String fill = "";
             StringBuilder sb = new StringBuilder();
             sb.append("digraph t112Ast {\n");
             sb.append("ordering=out\n");
             sb.append("node [shape = box, style = filled, fillcolor=\"white\"];\n");
             for(int i = 0;i<graph.size();i++) {
-                sb.append("n" + i + "[label = \"" +graph.get(i).getLabel() + "\",shape=box]");
+                if (graph.get(i).getError()){
+                    fill = "fillcolor=\"/pastel13/1\",";
+                } else {fill = "";}
+                sb.append("n" + i + "[label = \"" +graph.get(i).getLabel() + "\"," + fill + "shape=box]");
                 sb.append("\n");
                 if (graph.get(i).getChildren().size() > 0){
                     for (Node n: graph.get(i).getChildren()){
@@ -408,5 +461,33 @@ public class CompParser {
         } catch(IOException e) {
             System.out.println("IOException");
         }
+    }
+
+    public void typeCheck(){
+        ArrayList<String> types = new ArrayList<>();
+        for (Node n: graph){
+            types.clear();
+            if (n.getLabel().contains("MULTIPLICATIVE") || n.getLabel().contains("ADDITIVE")
+                    || n.getLabel().contains(":=")){
+                for(Node m:n.getChildren()){
+                    if (!m.getLabel().contains("MULTIPLICATIVE") && !m.getLabel().contains("ADDITIVE")
+                            && !m.getLabel().contains(":=")){
+                        String[] breakup = m.getLabel().split(":");
+                        String type = breakup[1];
+                        //System.out.println(type);
+                        types.add(type);
+                    }
+                }
+                //System.out.println(n.getLabel());
+                //System.out.println(types);
+                if (types.size()>1 && !types.get(0).equals(types.get(1))){
+                    n.setError(true);
+                }
+            }
+            if (n.getError()){
+                System.out.println(n.getLabel());
+            }
+        }
+
     }
 }

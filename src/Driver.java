@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 public class Driver {
     public static void main(String[] args){
-        CompScanner cs = new CompScanner("simple1.tl");
+        CompScanner cs = new CompScanner("sqrt.tl");
         ArrayList<String> fl = cs.getFileLines();
 
         // Print the lines of the file
@@ -22,6 +22,7 @@ public class Driver {
         cp.tokenStream();
         ArrayList<Node> graph = cp.getGraph();
         int count = 1;
+        /*
         for (Node n:graph){
             System.out.print("Node: " + count + " - " + n.getLabel());
             for(Node m:n.getChildren()){
@@ -29,8 +30,8 @@ public class Driver {
             }
             System.out.println();
         }
-
+        */
+        cp.typeCheck();
         cp.createDot("dotTest");
-
     }
 }
